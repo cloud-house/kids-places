@@ -1,5 +1,5 @@
 import { CollectionAfterChangeHook, Where } from 'payload'
-import { Place, Event, Organizer } from '@/payload-types'
+import { Organizer } from '@/payload-types'
 
 export const syncUserPlan: CollectionAfterChangeHook = async ({ req, doc, previousDoc, operation }) => {
     // This hook now works with the Organizers collection
@@ -37,12 +37,12 @@ export const syncUserPlan: CollectionAfterChangeHook = async ({ req, doc, previo
             req.payload.update({
                 collection: 'places',
                 where: whereClause,
-                data: { plan: newPlanStatus } as unknown as Partial<Place>,
+                data: { plan: newPlanStatus },
             }),
             req.payload.update({
                 collection: 'events',
                 where: whereClause,
-                data: { plan: newPlanStatus } as unknown as Partial<Event>,
+                data: { plan: newPlanStatus },
             }),
         ]);
 

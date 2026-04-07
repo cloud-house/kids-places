@@ -55,7 +55,7 @@ export async function createPlaceAction(data: PlaceSchema) {
                 ? (typeof validatedData.logo === 'string' ? parseInt(validatedData.logo) : validatedData.logo)
                 : null,
             socialLinks,
-            city: cityId as unknown as number,
+            city: cityId,
             owner: user.id,
             organizer: organizerId,
             features: validatedData.features?.map(f => ({
@@ -162,7 +162,7 @@ export async function updatePlaceAction(id: number, data: PlaceSchema) {
                 ? (typeof validatedData.logo === 'string' ? parseInt(validatedData.logo) : validatedData.logo)
                 : null,
             socialLinks,
-            city: cityId as unknown as number,
+            city: cityId,
             organizer: organizerId,
             features: validatedData.features?.map(f => ({
                 attribute: typeof f.attribute === 'string' ? parseInt(f.attribute) : f.attribute,

@@ -23,12 +23,14 @@ export const GET = async (req: NextRequest) => {
             return NextResponse.json({ error: 'Brak klucza APIFY_API_TOKEN' }, { status: 500 })
         }
 
+        const apifyHeaders = { 'Authorization': `Bearer ${apiKey}` }
+
         // 1. Check Run Status
-        const statusRes = await fetch(`https://api.apify.com/v2/actor-runs/${runId}?token=${apiKey}`)
+        const statusRes = await fetch(`https://api.apify.com/v2/actor-runs/${runId}`, { headers: apifyHeaders })
         if (!statusRes.ok) {
             return NextResponse.json({ error: 'Błąd sprawdzania statusu Apify' }, { status: 500 })
         }
-        
+
         const statusData = await statusRes.json()
         const status = statusData.data.status
         const datasetId = statusData.data.defaultDatasetId
@@ -39,7 +41,7 @@ export const GET = async (req: NextRequest) => {
         }
 
         // 2. Fetch Dataset if Succeeded
-        const datasetRes = await fetch(`https://api.apify.com/v2/datasets/${datasetId}/items?token=${apiKey}`)
+        const datasetRes = await fetch(`https://api.apify.com/v2/datasets/${datasetId}/items`, { headers: apifyHeaders })
         if (!datasetRes.ok) {
             return NextResponse.json({ error: 'Błąd pobierania wyników (dataset) z Apify' }, { status: 500 })
         }

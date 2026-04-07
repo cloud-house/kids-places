@@ -44,10 +44,11 @@ export const POST = async (req: NextRequest) => {
             },
         }
 
-        const response = await fetch(`https://api.apify.com/v2/acts/${actId}/runs?token=${apiKey}`, {
+        const response = await fetch(`https://api.apify.com/v2/acts/${actId}/runs`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
             },
             body: JSON.stringify(apifyInput),
         })

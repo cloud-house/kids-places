@@ -114,7 +114,7 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
         setIsGeocoding(true);
         try {
             const query = `${street}, ${city}${postalCode ? `, ${postalCode}` : ''}`;
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+            const response = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`);
             const data = await response.json();
 
             if (data && data[0]) {
