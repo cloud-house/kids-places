@@ -164,9 +164,15 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
                                 <h1 className="text-4xl md:text-6xl font-black text-gray-900 mb-4">{place.name}</h1>
                                 <div className="flex flex-wrap items-center gap-6 text-gray-600 font-medium font-bold">
                                     <div className="flex items-center gap-1">
-                                        <Star className="text-amber-400 fill-amber-400" size={20} />
-                                        <span className="text-gray-900 font-bold">{place.rating?.toFixed(1) || '0.0'}</span>
-                                        <span className="text-sm">({place.reviewCount || 0} opinii)</span>
+                                        <Star className={place.rating && place.rating > 0 ? "text-amber-400 fill-amber-400" : "text-gray-300"} size={20} />
+                                        {place.rating && place.rating > 0 ? (
+                                            <>
+                                                <span className="text-gray-900 font-bold">{place.rating.toFixed(1)}</span>
+                                                <span className="text-sm">({place.reviewCount || 0} {place.reviewCount === 1 ? 'opinia' : (place.reviewCount && place.reviewCount < 5 ? 'opinie' : 'opinii')})</span>
+                                            </>
+                                        ) : (
+                                            <span className="text-sm text-gray-400">Brak ocen</span>
+                                        )}
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <MapPin className="text-rose-500" size={20} />
