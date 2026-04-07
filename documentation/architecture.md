@@ -81,5 +81,10 @@ User-generated data:
 
 ## 🛠️ Development and Testing
 
-*   **E2E Tests**: Playwright (located in `tests/` directory).
+*   **Unit Tests**: Vitest (`pnpm test:unit`) — pure utility functions and business logic in `src/**/*.test.ts`.
+*   **E2E Tests**: Playwright (`pnpm test`) — located in `tests/` directory.
 *   **Type Generation**: `npm run generate:types` (automatic synchronization of TS types with Payload collections).
+
+## 🔒 Environment Variables
+
+All required environment variables are validated at startup using a Zod schema in `src/env.ts`. The app fails immediately with a clear error message if any variable is missing or malformed. See `.env.example` for the full list of required variables.

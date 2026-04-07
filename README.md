@@ -24,7 +24,7 @@
 | **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) + [Framer Motion](https://www.framer.com/motion/) |
 | **Payments** | [Stripe](https://stripe.com/) |
 | **Mailing** | [Resend](https://resend.com/) |
-| **Tests** | [Playwright](https://playwright.dev/) |
+| **Tests** | [Playwright](https://playwright.dev/) (E2E) + [Vitest](https://vitest.dev/) (unit) |
 
 ---
 
