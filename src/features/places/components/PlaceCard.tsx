@@ -17,7 +17,7 @@ interface PlaceCardProps {
 
 import { CardLayout } from '@/components/ui/CardLayout';
 
-export const PlaceCard: React.FC<PlaceCardProps> = ({ place, idx }) => {
+export const PlaceCard: React.FC<PlaceCardProps> = React.memo(({ place, idx }) => {
     const imageUrl = (typeof place.logo === 'object' && place.logo?.url) ? place.logo.url : null;
 
     // Determine premium status
@@ -36,7 +36,7 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({ place, idx }) => {
     ) : null;
 
     return (
-        <Link href={`/miejsca/${place.slug}`}>
+        <Link href={`/miejsca/${place.slug}`} aria-label={`Szczegóły miejsca: ${place.name}`}>
             <CardLayout
                 idx={idx}
                 imageUrl={imageUrl}
@@ -102,4 +102,5 @@ export const PlaceCard: React.FC<PlaceCardProps> = ({ place, idx }) => {
             </CardLayout>
         </Link>
     );
-};
+});
+PlaceCard.displayName = 'PlaceCard';
