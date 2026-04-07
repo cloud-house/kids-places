@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
 
                     // Revalidate dashboard
                     revalidatePath('/moje-konto', 'page');
-                    console.log(`✅ Webhook: Checkout session completed for organizer ${organizerId}. Plan: ${planId}`);
+                    payload.logger.info(`Webhook: Checkout session completed for organizer ${organizerId}. Plan: ${planId}`);
                 }
                 break;
             }
@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
 
                     // Revalidate dashboard
                     revalidatePath('/moje-konto', 'page');
-                    console.log(`✅ Webhook: Subscription updated for customer ${customerId}. Plan: ${updateData.plan}`);
+                    payload.logger.info(`Webhook: Subscription updated for customer ${customerId}. Plan: ${updateData.plan}`);
                 }
                 break;
             }
@@ -181,12 +181,12 @@ export async function POST(req: NextRequest) {
             }
 
             default:
-                console.log(`Unhandled event type ${event.type}`);
+                payload.logger.warn(`Webhook: Unhandled event type ${event.type}`);
         }
 
         return NextResponse.json({ received: true });
     } catch (error) {
-        console.error('Error processing webhook:', error);
+        payload.logger.error({ err: error }, 'Error processing webhook');
         return NextResponse.json({ error: 'Error processing webhook' }, { status: 500 });
     }
 }

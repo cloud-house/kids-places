@@ -105,13 +105,13 @@ export async function createInquiryAction(data: z.infer<typeof createInquirySche
                         dashboardUrl: `${BRAND_CONFIG.url}/moje-konto?tab=registrations`
                     })
                 });
-                console.log(`Inquiry notification sent to ${organizerEmail}`);
+                payload.logger.info(`Inquiry notification sent to ${organizerEmail}`);
             } else {
-                console.warn('Could not determine organizer email for inquiry notification');
+                payload.logger.warn('Could not determine organizer email for inquiry notification');
             }
 
         } catch (emailError) {
-            console.error('Failed to send inquiry notification email:', emailError);
+            payload.logger.error({ err: emailError }, 'Failed to send inquiry notification email');
             // We do NOT return success: false here, because the inquiry WAS created in DB.
         }
 
@@ -120,7 +120,8 @@ export async function createInquiryAction(data: z.infer<typeof createInquirySche
             message: 'Twoje zgłoszenie zostało wysłane pomyślnie!',
         }
     } catch (error) {
-        console.error('Error creating inquiry:', error)
+        const fallbackPayload = await getPayloadClient()
+        fallbackPayload.logger.error({ err: error }, 'Error creating inquiry')
         return {
             success: false,
             error: 'Wystąpił błąd podczas wysyłania zgłoszenia. Spróbuj ponownie później.',

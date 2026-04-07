@@ -37,8 +37,8 @@ export const createDefaultOrganizer: CollectionAfterChangeHook = async ({
             req, // Reuse req for context
         })
 
-        console.log(`✅ Created default organizer for user ${doc.email}`)
+        req.payload.logger.info(`Created default organizer for user ${doc.email}`)
     } catch (error) {
-        console.error('❌ Failed to create default organizer:', error)
+        req.payload.logger.error({ err: error }, 'Failed to create default organizer')
     }
 }

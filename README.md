@@ -31,30 +31,31 @@
 ## 📦 Getting Started
 
 ### 1. Requirements
-Ensure you have **Node.js 20+** and a **PostgreSQL** instance running.
+Ensure you have **Node.js 20+**, **pnpm**, and a **PostgreSQL** instance running.
 
 ### 2. Installation
 ```bash
 git clone <repository-url>
 cd kids-places
-npm install
+pnpm install
 ```
 
 ### 3. Environment Setup
-Create a `.env` file in the root directory (refer to `.env.example` if available, or check doc/architecture.md for required keys):
-```env
-DATABASE_URI=postgres://u:p@localhost:5432/db
-PAYLOAD_SECRET=your_secret
-NEXT_PUBLIC_SERVER_URL=http://localhost:3000
+Copy `.env.example` to `.env` and fill in the required values:
+```bash
+cp .env.example .env
 ```
 
 ### 4. Development
 ```bash
 # Generate types for Payload CMS
-npm run generate:types
+pnpm generate:types
+
+# Seed database with initial data
+pnpm seed
 
 # Run the dev server
-npm run dev
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) for the frontend and [http://localhost:3000/admin](http://localhost:3000/admin) for the CMS panel.
@@ -71,10 +72,10 @@ Detailed documentation is available in the `/documentation` folder:
 
 ## 🧪 Testing
 
-We use Playwright for End-to-End testing.
+We use Playwright for End-to-End testing and Vitest for unit tests.
 ```bash
-npm run test       # Run all tests
-npm run test:ui    # Run tests with UI
+pnpm test          # Run E2E tests (Playwright)
+pnpm test:unit     # Run unit tests (Vitest)
 ```
 
 ---
