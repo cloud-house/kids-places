@@ -7,6 +7,9 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
+if (!process.env.PAYLOAD_SECRET) throw new Error('Missing required env: PAYLOAD_SECRET')
+if (!process.env.DATABASE_URI) throw new Error('Missing required env: DATABASE_URI')
+
 import { Users } from './collections/Membership/Users'
 import { Media } from './collections/Media/Media'
 import { Categories } from './collections/Taxonomy/Categories'
@@ -58,13 +61,13 @@ export default buildConfig({
         Tickets,
     ],
     editor: lexicalEditor({}),
-    secret: process.env.PAYLOAD_SECRET || 'secret',
+    secret: process.env.PAYLOAD_SECRET!,
     typescript: {
         outputFile: path.resolve(dirname, 'payload-types.ts'),
     },
     db: postgresAdapter({
         pool: {
-            connectionString: process.env.DATABASE_URI || '',
+            connectionString: process.env.DATABASE_URI!,
         },
         push: false, // Turn off automatic schema push to use migrations instead
     }),
@@ -72,7 +75,7 @@ export default buildConfig({
     email: resendAdapter({
         defaultFromAddress: BRAND_CONFIG.defaultFromAddress,
         defaultFromName: BRAND_CONFIG.defaultFromName,
-        apiKey: process.env.RESEND_API_KEY || "",
+        apiKey: process.env.RESEND_API_KEY!,
     }),
     plugins: [
         s3Storage({
@@ -81,12 +84,12 @@ export default buildConfig({
                     prefix: "media",
                 },
             },
-            bucket: process.env.S3_BUCKET || "",
+            bucket: process.env.S3_BUCKET!,
             config: {
                 forcePathStyle: true, // Important for using Supabase
                 credentials: {
-                    accessKeyId: process.env.S3_ACCESS_KEY_ID || "",
-                    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY || "",
+                    accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+                    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
                 },
                 region: process.env.S3_REGION,
                 endpoint: process.env.S3_ENDPOINT,
