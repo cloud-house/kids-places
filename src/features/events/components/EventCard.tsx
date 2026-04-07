@@ -13,7 +13,7 @@ interface EventCardProps {
 
 import { CardLayout } from '@/components/ui/CardLayout';
 
-export const EventCard: React.FC<EventCardProps> = ({ event, idx = 0 }) => {
+export const EventCard: React.FC<EventCardProps> = React.memo(({ event, idx = 0 }) => {
     const imageUrl = (typeof event.logo === 'object' && event.logo?.url) ? event.logo.url : null;
     const placeObj = (typeof event.place === 'object' && event.place) ? event.place : null;
     const placeName = placeObj ? placeObj.name : null;
@@ -44,7 +44,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, idx = 0 }) => {
     );
 
     return (
-        <Link href={`/wydarzenia/${event.slug}`}>
+        <Link href={`/wydarzenia/${event.slug}`} aria-label={`Szczegóły wydarzenia: ${event.title}`}>
             <CardLayout
                 idx={idx}
                 imageUrl={imageUrl}
@@ -108,4 +108,5 @@ export const EventCard: React.FC<EventCardProps> = ({ event, idx = 0 }) => {
             </CardLayout>
         </Link>
     );
-};
+});
+EventCard.displayName = 'EventCard';
