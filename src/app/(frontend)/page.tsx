@@ -1,3 +1,5 @@
+export const revalidate = 3600; // 1 hour
+
 import { Suspense } from 'react';
 import { getPayloadClient } from '@/lib/payload-client';
 import { headers } from 'next/headers';
