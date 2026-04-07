@@ -6,7 +6,7 @@ import { formatSlug } from './formatSlug';
  * Finds a city by name (case-insensitive) or creates a new one.
  * Returns the City ID.
  */
-export async function getOrCreateCity(cityName: string, payloadInstance?: Payload): Promise<number | string> {
+export async function getOrCreateCity(cityName: string, payloadInstance?: Payload): Promise<number> {
     if (!cityName) throw new Error('City name is required');
 
     const payload = payloadInstance || await getPayloadClient();
