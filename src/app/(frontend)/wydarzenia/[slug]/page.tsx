@@ -1,3 +1,5 @@
+export const revalidate = 1800; // 30 minutes
+
 import React from 'react';
 import { notFound } from 'next/navigation';
 import { getEventBySlug } from '@/features/events/service';

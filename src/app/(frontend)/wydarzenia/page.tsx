@@ -11,6 +11,8 @@ import { Pagination } from '@/components/ui/Pagination';
 import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 import { Event } from '@/payload-types';
 
+export const revalidate = 1800; // 30 minutes — events change more frequently
+
 import type { Metadata } from 'next';
 import { BRAND_CONFIG } from '@/lib/config';
 import { FilterSidebarSkeleton } from '@/components/skeletons/FilterSidebarSkeleton';

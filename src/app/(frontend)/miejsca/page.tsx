@@ -10,6 +10,8 @@ import { SortSelect } from '@/features/search/components/SortSelect';
 import { Pagination } from '@/components/ui/Pagination';
 import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 
+export const revalidate = 3600; // 1 hour
+
 import type { Metadata } from 'next';
 import { BRAND_CONFIG } from '@/lib/config';
 import { FilterSidebarSkeleton } from '@/components/skeletons/FilterSidebarSkeleton';

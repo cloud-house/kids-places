@@ -1,3 +1,5 @@
+export const revalidate = 3600; // 1 hour
+
 import React, { Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import { getPlaceBySlug } from '@/features/places/service';
