@@ -2,7 +2,7 @@ import { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 import { revalidatePath } from 'next/cache'
 
 export const revalidateCollection = (pathRoot: string): CollectionAfterChangeHook =>
-    async ({ doc, operation }) => {
+    async ({ doc, operation, req }) => {
         if (operation === 'update' || operation === 'create') {
             try {
                 revalidatePath(pathRoot)
@@ -11,16 +11,16 @@ export const revalidateCollection = (pathRoot: string): CollectionAfterChangeHoo
                 }
                 revalidatePath('/')
                 revalidatePath('/moje-konto')
-                console.log(`[Revalidation] Triggered for ${pathRoot} (id: ${doc.id})`)
+                req.payload.logger.info(`[Revalidation] Triggered for ${pathRoot} (id: ${doc.id})`)
             } catch (error) {
-                console.warn(`[Revalidation] Could not revalidate ${pathRoot}:`, error instanceof Error ? error.message : error)
+                req.payload.logger.warn({ err: error }, `[Revalidation] Could not revalidate ${pathRoot}`)
             }
         }
         return doc
     }
 
 export const revalidateDelete = (pathRoot: string): CollectionAfterDeleteHook =>
-    async ({ doc }) => {
+    async ({ doc, req }) => {
         try {
             revalidatePath(pathRoot)
             if (doc.slug) {
@@ -28,9 +28,9 @@ export const revalidateDelete = (pathRoot: string): CollectionAfterDeleteHook =>
             }
             revalidatePath('/')
             revalidatePath('/moje-konto')
-            console.log(`[Revalidation] Triggered after delete for ${pathRoot} (id: ${doc.id})`)
+            req.payload.logger.info(`[Revalidation] Triggered after delete for ${pathRoot} (id: ${doc.id})`)
         } catch (error) {
-            console.warn(`[Revalidation] Could not revalidate ${pathRoot} after delete:`, error instanceof Error ? error.message : error)
+            req.payload.logger.warn({ err: error }, `[Revalidation] Could not revalidate ${pathRoot} after delete`)
         }
         return doc
     }

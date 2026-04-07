@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
             depth: 1, // Ensure we get owner details
         });
 
-        console.log(`Found ${organizers.docs.length} organizers to send BLIK reminders to.`);
+        payload.logger.info(`Found ${organizers.docs.length} organizers to send BLIK reminders to.`);
 
         const results = await Promise.allSettled(
             organizers.docs.map(async (org) => {
@@ -90,7 +90,8 @@ export async function GET(req: NextRequest) {
             failures,
         });
     } catch (error) {
-        console.error('Cron job error:', error);
+        const fallbackPayload = await getPayloadClient();
+        fallbackPayload.logger.error({ err: error }, 'Cron job error');
         return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
     }
 }
