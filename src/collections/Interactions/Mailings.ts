@@ -110,9 +110,10 @@ export const Mailings: CollectionConfig = {
         afterChange: [
             (async ({ doc, previousDoc, req }: Parameters<CollectionAfterChangeHook>[0]) => {
                 if (doc.status === 'sent' && previousDoc.status !== 'sent') {
+                    req.payload.logger.info(`[Mailing Hook] Triggering sendMailing for ID: ${doc.id}`)
                     // Trigger mailing asynchronously
-                    sendMailing(req.payload, doc.id).catch(err => {
-                        req.payload.logger.error(`Mailing error: ${err}`)
+                    sendMailing(req.payload, doc.id, doc).catch(err => {
+                        req.payload.logger.error(`[Mailing Hook] Error during async sendMailing: ${err}`)
                     })
                 }
             }) as CollectionAfterChangeHook,
