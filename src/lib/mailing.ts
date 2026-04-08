@@ -59,6 +59,12 @@ export const sendMailing = async (payload: Payload, mailingId: string | number) 
             continue
         }
 
+        // Skip already contacted places for partnership_offer (anti-duplicate guard)
+        if (templateKey === 'partnership_offer' && place?.crmStatus && place.crmStatus !== 'new') {
+            payload.logger.info(`Skipping place ${place.id} — already contacted (crmStatus: ${place.crmStatus}).`)
+            continue
+        }
+
         if (place?.email) {
             // Skip places that opted out (applies to individually-selected recipients)
             if (place.emailOptOut) {
