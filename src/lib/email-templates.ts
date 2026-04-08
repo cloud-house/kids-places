@@ -13,7 +13,7 @@ export const EMAIL_TEMPLATES = {
         getSubject: (subject?: string) => subject || 'Wiadomość z Kids Places',
         getHtml: (data: EmailTemplateData) => `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-                <h2>Witaj, ${data.placeName}!</h2>
+                <h2>Witaj!</h2>
                 ${data.customMessage || ''}
                 <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;" />
                 <p style="font-size: 12px; color: #666;">
@@ -28,11 +28,11 @@ export const EMAIL_TEMPLATES = {
         getSubject: () => 'Kids Places - darmowa promocja Twojego obiektu!',
         getHtml: (data: EmailTemplateData) => `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
-                <h2 style="color: #FF5A5F;">Dzień dobry, ${data.placeName}!</h2>
+                <h2 style="color: #FF5A5F;">Dzień dobry :)</h2>
                 <p>
                     Nazywam się Marcin Chmura i kontaktuję się z Państwem w imieniu platformy <strong>${BRAND_CONFIG.name}</strong>, nowego katalogu atrakcji dla dzieci. 
                     Chciałbym rozwijać ten portal razem z właścicielami obiektów, którzy chcą promować swoje miejsca, w sposób partnerski i transparentny. 
-                    Liczę na to, że uda nam się stworzyć wartościowe narzędzie dla rodziców i atrakcyjne miejsce promocji dla obiektów z wspólnie wypracowanymi funkcjonalnościami i wartością która za tym idzie. Ja ze swojej strony będę dbał o poprawianie widoczności portalu w wyszukiwarkach, promocję w mediach społecznościowych oraz rozwijanie funkcjonalności portalu. Zachęcam do feedbacku i zgłaszania propozycji, które mogą wpłynąć na rozwój portalu.
+                    Liczę na to, że uda nam się stworzyć wartościowe narzędzie dla rodziców i atrakcyjne miejsce promocji dla obiektów ze wspólnie wypracowanymi funkcjonalnościami i wartością, która za tym idzie. Ja ze swojej strony będę dbał o poprawianie widoczności portalu w wyszukiwarkach, promocję w mediach społecznościowych oraz rozwijanie funkcjonalności portalu. Zachęcam do feedbacku i zgłaszania propozycji, które mogą wpłynąć na rozwój portalu.
                 </p>
                 <p>
                     Zauważyliśmy, że Państwa obiekt świetnie pasuje do profilu naszego portalu. Chcielibyśmy zaproponować <strong>bezpłatne dodanie go do naszej bazy</strong>, co pozwoli dotrzeć do tysięcy nowych rodzin poszukujących ciekawych miejsc.
@@ -59,7 +59,7 @@ export const EMAIL_TEMPLATES = {
         getSubject: () => 'Aktualizacja profilu na Kids Places przed nadchodzącym sezonem',
         getHtml: (data: EmailTemplateData) => `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
-                <h2>Witaj, ${data.placeName}!</h2>
+                <h2>Dzień dobry :)</h2>
                 <p>
                     Zbliża się nowy sezon, w którym tysiące rodziców będą poszukiwać atrakcji na naszej platformie.
                 </p>
