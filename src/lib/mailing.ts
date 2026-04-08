@@ -1,8 +1,9 @@
 import { Payload, Where } from 'payload'
 import { EMAIL_TEMPLATES, TemplateKey } from './email-templates'
 import { buildUnsubscribeUrl } from './unsubscribe'
+import { Mailing, Place } from '../payload-types'
 
-export const sendMailing = async (payload: Payload, mailingId: string | number, doc?: any) => {
+export const sendMailing = async (payload: Payload, mailingId: string | number, doc?: Partial<Mailing>) => {
     payload.logger.info(`[Mailing] Starting mailing for ID: ${mailingId}`)
 
     let mailing = doc;
@@ -45,7 +46,7 @@ export const sendMailing = async (payload: Payload, mailingId: string | number, 
         ...(templateKey === 'partnership_offer' ? { owner: { exists: false } } : {}),
     }
 
-    let recipients: (number | import('../payload-types').Place)[] = []
+    let recipients: (number | Place)[] = []
 
     try {
         if (mailing.recipientsType === 'individual') {
