@@ -30,7 +30,9 @@ export const EMAIL_TEMPLATES = {
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333; line-height: 1.6;">
                 <h2 style="color: #FF5A5F;">Dzień dobry, ${data.placeName}!</h2>
                 <p>
-                    Kontaktujemy się z Państwem w imieniu platformy <strong>${BRAND_CONFIG.name}</strong>, największego katalogu atrakcji dla dzieci.
+                    Nazywam się Marcin Chmura i kontaktuję się z Państwem w imieniu platformy <strong>${BRAND_CONFIG.name}</strong>, nowego katalogu atrakcji dla dzieci. 
+                    Chciałbym rozwijać ten portal razem z właścicielami obiektów, którzy chcą promować swoje miejsca, w sposób partnerski i transparentny. 
+                    Liczę na to, że uda nam się stworzyć wartościowe narzędzie dla rodziców i atrakcyjne miejsce promocji dla obiektów z wspólnie wypracowanymi funkcjonalnościami i wartością która za tym idzie. Ja ze swojej strony będę dbał o poprawianie widoczności portalu w wyszukiwarkach, promocję w mediach społecznościowych oraz rozwijanie funkcjonalności portalu. Zachęcam do feedbacku i zgłaszania propozycji, które mogą wpłynąć na rozwój portalu.
                 </p>
                 <p>
                     Zauważyliśmy, że Państwa obiekt świetnie pasuje do profilu naszego portalu. Chcielibyśmy zaproponować <strong>bezpłatne dodanie go do naszej bazy</strong>, co pozwoli dotrzeć do tysięcy nowych rodzin poszukujących ciekawych miejsc.
