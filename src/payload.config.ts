@@ -72,10 +72,21 @@ export default buildConfig({
         push: false, // Turn off automatic schema push to use migrations instead
     }),
     sharp,
-    email: resendAdapter({
-        defaultFromAddress: BRAND_CONFIG.defaultFromAddress,
-        defaultFromName: BRAND_CONFIG.defaultFromName,
-        apiKey: process.env.RESEND_API_KEY!,
+    email: (({ payload }) => {
+        const adapter = resendAdapter({
+            defaultFromAddress: BRAND_CONFIG.defaultFromAddress,
+            defaultFromName: BRAND_CONFIG.defaultFromName,
+            apiKey: process.env.RESEND_API_KEY!,
+        })({ payload })
+        // Wrap adapter to inject replyTo on every outgoing email from the system
+        return {
+            ...adapter,
+            sendEmail: (message: Parameters<typeof adapter.sendEmail>[0]) =>
+                adapter.sendEmail({
+                    ...message,
+                    replyTo: message.replyTo ?? BRAND_CONFIG.contactEmail,
+                }),
+        }
     }),
     plugins: [
         s3Storage({
