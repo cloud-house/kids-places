@@ -2,7 +2,8 @@ import { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'payload'
 import { revalidatePath } from 'next/cache'
 
 export const revalidateCollection = (pathRoot: string): CollectionAfterChangeHook =>
-    async ({ doc, operation, req }) => {
+    async ({ doc, operation, req, context }) => {
+        if (context?.skipRevalidation) return doc
         if (operation === 'update' || operation === 'create') {
             try {
                 revalidatePath(pathRoot)
