@@ -146,7 +146,6 @@ export const sendMailing = async (payload: Payload, mailingId: string | number, 
                 html: htmlContent,
             })
 
-            // Update last contacted date
             await payload.update({
                 collection: 'places',
                 id: place.id,
@@ -154,6 +153,7 @@ export const sendMailing = async (payload: Payload, mailingId: string | number, 
                     lastContacted: new Date().toISOString(),
                     crmStatus: 'contacted',
                 },
+                overrideAccess: true,
             })
             successCount++;
         } catch (err) {
@@ -171,6 +171,7 @@ export const sendMailing = async (payload: Payload, mailingId: string | number, 
             data: {
                 sentAt: new Date().toISOString(),
             },
+            overrideAccess: true,
         })
         payload.logger.info(`[Mailing] Done. sentAt updated for mailing ${mailingId}`)
     } catch (err) {

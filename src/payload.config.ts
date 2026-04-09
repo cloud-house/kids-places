@@ -38,6 +38,17 @@ const dirname = path.dirname(filename)
 export default buildConfig({
     admin: {
         user: Users.slug,
+        components: {
+            views: {
+                crm: {
+                    Component: '@/app/(payload)/admin/components/CrmDashboard#CrmDashboard',
+                    path: '/crm',
+                },
+            },
+            afterNavLinks: [
+                '@/app/(payload)/admin/components/CrmNavLink#CrmNavLink',
+            ],
+        },
     },
     collections: [
         Users,

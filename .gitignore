@@ -43,3 +43,7 @@ next-env.d.ts
 # tests
 /playwright-report
 /test-results
+
+# backup
+/backup
+backup_*.sql
