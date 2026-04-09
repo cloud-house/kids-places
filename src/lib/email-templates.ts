@@ -5,6 +5,7 @@ export type EmailTemplateData = {
     customMessage?: string;
     city?: string;
     unsubscribeUrl?: string;
+    placeUrl?: string;
 }
 
 export const EMAIL_TEMPLATES = {
@@ -31,8 +32,12 @@ export const EMAIL_TEMPLATES = {
                 <h2 style="color: #FF5A5F;">Dzień dobry :)</h2>
                 <p>
                     Nazywam się Marcin Chmura i kontaktuję się z Państwem w imieniu platformy <strong>${BRAND_CONFIG.name}</strong>, nowego katalogu atrakcji dla dzieci. 
-                    Chciałbym rozwijać ten portal razem z właścicielami obiektów, którzy chcą promować swoje miejsca, w sposób partnerski i transparentny. 
-                    Liczę na to, że uda nam się stworzyć wartościowe narzędzie dla rodziców i atrakcyjne miejsce promocji dla obiektów ze wspólnie wypracowanymi funkcjonalnościami i wartością, która za tym idzie. Ja ze swojej strony będę dbał o poprawianie widoczności portalu w wyszukiwarkach, promocję w mediach społecznościowych oraz rozwijanie funkcjonalności portalu. Zachęcam do feedbacku i zgłaszania propozycji, które mogą wpłynąć na rozwój portalu.
+                    Chciałbym rozwijać ten portal razem z właścicielami obiektów, którzy chcą promować swoje miejsca, w sposób partnerski i transparentny.
+                </p>
+                <p>
+                    Liczę na to, że uda nam się stworzyć wartościowe narzędzie dla rodziców i atrakcyjne miejsce promocji dla obiektów ze wspólnie wypracowanymi funkcjonalnościami i wartością, która za tym idzie. 
+                    Ja ze swojej strony będę dbał o poprawianie widoczności portalu w wyszukiwarkach, promocję w mediach społecznościowych oraz rozwijanie funkcjonalności portalu. 
+                    Zachęcam do feedbacku i zgłaszania propozycji, które mogą wpłynąć na rozwój projektu.
                 </p>
                 <p>
                     Zauważyliśmy, że Państwa obiekt świetnie pasuje do profilu naszego portalu. Chcielibyśmy zaproponować <strong>bezpłatne dodanie go do naszej bazy</strong>, co pozwoli dotrzeć do tysięcy nowych rodzin poszukujących ciekawych miejsc.
@@ -40,8 +45,8 @@ export const EMAIL_TEMPLATES = {
                 <p>
                     Wstępny profil obiektu został już przez nas naszkicowany. Wystarczy założyć darmowe konto, aby przejąć nad nim kontrolę, dodać zdjęcia i zaktualizować godziny otwarcia!
                 </p>
-                <a href="${BRAND_CONFIG.url}/rejestracja" style="display: inline-block; background-color: #FF5A5F; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">
-                    Załóż darmowe konto i odbierz profil
+                <a href="${data.placeUrl || `${BRAND_CONFIG.url}/rejestracja`}" style="display: inline-block; background-color: #FF5A5F; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 10px;">
+                    Zobacz swój profil i odbierz go bezpłatnie
                 </a>
                 <p style="margin-top: 20px;">
                     W razie jakichkolwiek pytań, zapraszamy do kontaktu, odpowiadając na tę wiadomość.

@@ -1,6 +1,7 @@
 import { Payload, Where } from 'payload'
 import { EMAIL_TEMPLATES, TemplateKey } from './email-templates'
 import { buildUnsubscribeUrl } from './unsubscribe'
+import { BRAND_CONFIG } from './config'
 import { Mailing, Place } from '../payload-types'
 
 export const sendMailing = async (payload: Payload, mailingId: string | number, doc?: Partial<Mailing>) => {
@@ -137,6 +138,7 @@ export const sendMailing = async (payload: Payload, mailingId: string | number, 
                 placeName: place.name || 'Partnerze',
                 customMessage,
                 unsubscribeUrl: buildUnsubscribeUrl(place.id),
+                placeUrl: place.slug ? `${BRAND_CONFIG.url}/miejsca/${place.slug}` : undefined,
             })
 
             payload.logger.info(`[Mailing] Sending to ${place.email}...`)
