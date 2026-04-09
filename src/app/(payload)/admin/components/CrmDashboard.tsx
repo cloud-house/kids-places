@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useCallback } from 'react'
+import Link from 'next/link'
 import { toast } from '@payloadcms/ui'
 
 type CrmStatus = 'new' | 'contacted' | 'interested' | 'rejected' | 'active'
@@ -124,13 +125,13 @@ export const CrmDashboard: React.FC = () => {
         <div style={{ padding: '32px', fontFamily: 'var(--font-body)', color: 'var(--theme-text)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h1 style={{ fontSize: '24px', fontWeight: 700, margin: 0 }}>CRM — Miejsca</h1>
-                <a
+                <Link
                     href="/admin/collections/mailings/create"
                     className="btn btn--style-primary"
                     style={{ padding: '8px 16px' }}
                 >
                     + Nowy Mailing
-                </a>
+                </Link>
             </div>
 
             {/* Stats */}
