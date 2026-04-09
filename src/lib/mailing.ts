@@ -5,7 +5,7 @@ import { BRAND_CONFIG } from './config'
 import { Place } from '../payload-types'
 
 export const sendMailing = async (payload: Payload, mailingId: string | number) => {
-    payload.logger.info(`[Mailing] Starting mailing for ID: ${mailingId}`)
+    payload.logger.info(`[Mailing] Starting for ID: ${mailingId}`)
 
     const mailing = await payload.findByID({
         collection: 'mailings',
@@ -14,7 +14,7 @@ export const sendMailing = async (payload: Payload, mailingId: string | number) 
     })
 
     if (!mailing) {
-        payload.logger.error(`[Mailing] Mailing not found for ID: ${mailingId}`)
+        payload.logger.error(`[Mailing] Not found for ID: ${mailingId}`)
         return
     }
 
@@ -35,14 +35,6 @@ export const sendMailing = async (payload: Payload, mailingId: string | number) 
         payload.logger.error(`[Mailing] Template '${templateKey}' not found!`)
         return
     }
-
-    // Set sentAt immediately so the admin UI shows it right away
-    await payload.update({
-        collection: 'mailings',
-        id: mailingId,
-        data: { sentAt: new Date().toISOString() },
-        overrideAccess: true,
-    })
 
     // Base query — for partnership_offer exclude already claimed places
     const baseWhere: Where = {
@@ -139,6 +131,18 @@ export const sendMailing = async (payload: Payload, mailingId: string | number) 
             payload.logger.error(`[Mailing] Send error for place ${place.id}: ${err}`)
             failCount++
         }
+    }
+
+    // Set sentAt after all emails are sent
+    try {
+        await payload.update({
+            collection: 'mailings',
+            id: mailingId,
+            data: { sentAt: new Date().toISOString() },
+            overrideAccess: true,
+        })
+    } catch (err) {
+        payload.logger.error(`[Mailing] Failed to update sentAt: ${err}`)
     }
 
     payload.logger.info(

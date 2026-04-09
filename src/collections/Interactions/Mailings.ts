@@ -1,5 +1,4 @@
 import type { CollectionConfig, Access, CollectionAfterChangeHook } from 'payload'
-import { sendMailing } from '../../lib/mailing'
 
 export const Mailings: CollectionConfig = {
     slug: 'mailings',
@@ -108,14 +107,19 @@ export const Mailings: CollectionConfig = {
     ],
     hooks: {
         afterChange: [
-            (async ({ doc, previousDoc, req }: Parameters<CollectionAfterChangeHook>[0]) => {
+            (({ doc, previousDoc, req }: Parameters<CollectionAfterChangeHook>[0]) => {
                 if (doc.status === 'sent' && previousDoc.status !== 'sent') {
-                    req.payload.logger.info(`[Mailing Hook] Triggering sendMailing for ID: ${doc.id}`)
-                    try {
-                        await sendMailing(req.payload, doc.id)
-                    } catch (err) {
-                        req.payload.logger.error(`[Mailing Hook] Error during sendMailing: ${err}`)
-                    }
+                    req.payload.logger.info(`[Mailing Hook] Triggering send for ID: ${doc.id}`)
+                    const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || 'https://www.kids-places.pl'
+                    fetch(`${baseUrl}/api/mailing/send`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(process.env.CRON_SECRET ? { Authorization: `Bearer ${process.env.CRON_SECRET}` } : {}),
+                        },
+                        body: JSON.stringify({ mailingId: doc.id }),
+                    }).catch(err => req.payload.logger.error(`[Mailing Hook] Trigger failed: ${err}`))
+                    // No await — intentional. Request is dispatched to a separate serverless function.
                 }
             }) as CollectionAfterChangeHook,
         ],
