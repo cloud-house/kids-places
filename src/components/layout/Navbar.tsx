@@ -1,17 +1,19 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Heart, User, Menu, X, Plus, ChevronRight, LogOut } from 'lucide-react';
+import { Heart, User, Menu, X, Plus, ChevronRight, LogOut, MapPin, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { User as UserType } from '@/payload-types';
+import { User as UserType, City } from '@/payload-types';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { logoutAction } from '@/features/auth/actions';
+import { useCity } from '@/features/cities/providers/CityProvider';
 
 interface NavbarProps {
     user?: UserType | null;
+    cities?: City[];
 }
 
 export const NAV_LINKS = [
@@ -20,12 +22,15 @@ export const NAV_LINKS = [
     { href: '/blog', label: 'Blog' },
 ];
 
-export const Navbar: React.FC<NavbarProps> = ({ user }) => {
+export const Navbar: React.FC<NavbarProps> = ({ user, cities = [] }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
     const pathname = usePathname();
     const isParentOnly = user && user.roles?.includes('parent') && !user.roles?.includes('organizer') && !user.roles?.includes('admin');
     const showAddButton = !isParentOnly;
+    const { selectedCity, openModal } = useCity();
+
+    const selectedCityObj = selectedCity ? cities.find(c => c.slug === selectedCity || c.name === selectedCity) : null;
 
     // Close mobile menu when path changes
     useEffect(() => {
@@ -90,6 +95,25 @@ export const Navbar: React.FC<NavbarProps> = ({ user }) => {
 
                         {/* 3. Actions (Right) */}
                         <div className="col-span-6 lg:col-span-3 flex items-center justify-end gap-2 md:gap-4">
+                            {/* City Toggle */}
+                            <button
+                                onClick={openModal}
+                                className="hidden md:flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-full transition-colors shrink-0"
+                                title="Zmień miasto"
+                            >
+                                {selectedCityObj ? (
+                                    <>
+                                        <MapPin size={16} className="text-rose-500" />
+                                        <span className="truncate max-w-[100px]">{selectedCityObj.name}</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Globe size={16} className="text-gray-400" />
+                                        <span className="truncate max-w-[100px]">Cała Polska</span>
+                                    </>
+                                )}
+                            </button>
+
                             {/* Favorites Icon */}
                             <Link
                                 href="/ulubione"

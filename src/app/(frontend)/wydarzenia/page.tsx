@@ -1,5 +1,7 @@
 import React, { Suspense } from 'react';
+import { cookies } from 'next/headers';
 import { Calendar } from 'lucide-react';
+
 import { getAttributes } from '@/features/attributes/service';
 import { getCategories } from '@/features/categories/service';
 import { getEvents } from '@/features/events/service';
@@ -57,12 +59,17 @@ async function ResultsWrapper({ searchParams }: { searchParams: Promise<Record<s
         }
     });
 
+    const cookieStore = await cookies();
+    const globalCity = cookieStore.get('kp_city_slug')?.value;
+    const requestedCity = Array.isArray(params.city) ? params.city[0] : params.city;
+    const effectiveCity = requestedCity || (globalCity !== 'all' ? globalCity : undefined);
+
     const eventsResult = await getEvents({
         limit: 12,
         page: currentPage,
         sort: currentSort,
         q: (Array.isArray(params.q) ? params.q[0] : params.q),
-        city: (Array.isArray(params.city) ? params.city[0] : params.city),
+        city: effectiveCity,
         categorySlug: (Array.isArray(params.category) ? params.category[0] : params.category),
         attributes: attributeFilters
     });

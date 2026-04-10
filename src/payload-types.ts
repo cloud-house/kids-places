@@ -84,7 +84,6 @@ export interface Config {
     posts: Post;
     'post-categories': PostCategory;
     'newsletter-subscriptions': NewsletterSubscription;
-    mailings: Mailing;
     tickets: Ticket;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -110,7 +109,6 @@ export interface Config {
     posts: PostsSelect<false> | PostsSelect<true>;
     'post-categories': PostCategoriesSelect<false> | PostCategoriesSelect<true>;
     'newsletter-subscriptions': NewsletterSubscriptionsSelect<false> | NewsletterSubscriptionsSelect<true>;
-    mailings: MailingsSelect<false> | MailingsSelect<true>;
     tickets: TicketsSelect<false> | TicketsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -701,44 +699,6 @@ export interface NewsletterSubscription {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "mailings".
- */
-export interface Mailing {
-  id: number;
-  /**
-   * Wybierz jeden z przygotowanych szablonów trzymanych w kodzie lub wpisz własny tekst.
-   */
-  template?: ('custom' | 'partnership_offer' | 'update_request') | null;
-  subject?: string | null;
-  content?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Wybierz grupę docelową wysyłki.
-   */
-  recipientsType?: ('individual' | 'city' | 'category') | null;
-  recipients?: (number | Place)[] | null;
-  city?: (number | null) | City;
-  category?: (number | null) | Category;
-  status?: ('draft' | 'sent') | null;
-  sentAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -828,10 +788,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'newsletter-subscriptions';
         value: number | NewsletterSubscription;
-      } | null)
-    | ({
-        relationTo: 'mailings';
-        value: number | Mailing;
       } | null)
     | ({
         relationTo: 'tickets';
@@ -1267,23 +1223,6 @@ export interface NewsletterSubscriptionsSelect<T extends boolean = true> {
   city?: T;
   consent?: T;
   status?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "mailings_select".
- */
-export interface MailingsSelect<T extends boolean = true> {
-  template?: T;
-  subject?: T;
-  content?: T;
-  recipientsType?: T;
-  recipients?: T;
-  city?: T;
-  category?: T;
-  status?: T;
-  sentAt?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google"; // Keeping Geist as it is modern and nice
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import 'leaflet/dist/leaflet.css';
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { getPayloadClient } from "@/lib/payload-client";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { FavoritesProvider } from "@/features/favorites/providers/FavoritesProvider";
 import { Toaster } from "@/components/ui/sonner";
 import { BRAND_CONFIG } from "@/lib/config";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import CookieBanner from "@/components/privacy/CookieBanner";
+import { CityProvider } from "@/features/cities/providers/CityProvider";
+import { CitySelectionModal } from "@/features/cities/components/CitySelectionModal";
+import { getCities } from "@/features/cities/service";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -79,22 +82,32 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const payload = await getPayloadClient();
-  const { user } = await payload.auth({ headers: await headers() });
+  const [authResult, cities, cookieStore] = await Promise.all([
+    payload.auth({ headers: await headers() }),
+    getCities(),
+    cookies(),
+  ]);
+
+  const user = authResult.user;
+  const initialCity = cookieStore.get('kp_city_slug')?.value || null;
 
   return (
     <html lang="pl">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white text-gray-900`}
       >
-        <FavoritesProvider>
-          <div className="flex flex-col min-h-screen">
-            <Navbar user={user} />
-            <main className="flex-grow pt-20 flex flex-col">
-              {children}
-            </main>
-            <Footer />
-          </div>
-        </FavoritesProvider>
+        <CityProvider initialCity={initialCity}>
+          <FavoritesProvider>
+            <div className="flex flex-col min-h-screen">
+              <Navbar user={user} cities={cities} />
+              <main className="flex-grow pt-20 flex flex-col">
+                {children}
+              </main>
+              <Footer />
+            </div>
+            <CitySelectionModal cities={cities} />
+          </FavoritesProvider>
+        </CityProvider>
         <Toaster position="bottom-right" />
         <CookieBanner />
         {process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (

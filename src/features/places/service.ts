@@ -36,13 +36,18 @@ export const getPlaces = cache(async (options?: {
     return { docs, totalPages, page, hasNextPage, hasPrevPage, nextPage, prevPage }
 })
 
-export const getFeaturedPlaces = cache(async () => {
+export const getFeaturedPlaces = cache(async (options?: { city?: string }) => {
     const payload = await getPayloadClient()
+    const where = buildCommonWhere({
+        ...(options || {}),
+        searchFields: ['name'],
+        cityFields: ['city.name', 'city.slug']
+    });
+    where._status = { equals: 'published' };
+
     const { docs } = await payload.find({
         collection: 'places',
-        where: {
-            _status: { equals: 'published' },
-        },
+        where,
         sort: ['-plan', '-createdAt'],
         limit: 4,
         depth: 2,

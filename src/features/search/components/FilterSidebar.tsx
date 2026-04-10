@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState, useEffect, useTransition } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { Search, MapPin, Tag, X, ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
 import { Category, Attribute, AttributeGroup, City } from '@/payload-types';
 import { Input } from '@/components/ui/input';
@@ -33,6 +33,8 @@ import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils/cn"
 
 import { Icon } from '@/components/ui/Icon';
+import { useCity } from '@/features/cities/providers/CityProvider';
+import { setCityCookie } from '@/features/cities/actions';
 
 // Removed CITIES import
 
@@ -48,10 +50,19 @@ interface FilterSidebarProps {
 export const FilterSidebar: React.FC<FilterSidebarProps> = ({ categories, attributes, basePath, scope, cities }) => {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const pathname = usePathname();
+    const { selectedCity, changeCity } = useCity();
+    const [isPending, startTransition] = useTransition();
+
+    const urlCity = searchParams.get('city');
 
     const [q, setQ] = useState(searchParams.get('q') || '');
-    const [city, setCity] = useState(searchParams.get('city') || '');
+    const [city, setCity] = useState(urlCity || selectedCity || '');
     const [categorySlug, setCategorySlug] = useState(searchParams.get('category') || '');
+
+    useEffect(() => {
+        setCity(urlCity || selectedCity || '');
+    }, [urlCity, selectedCity]);
 
     // Get current attribute filters from URL
     const getCurrentAttributes = () => {
@@ -240,18 +251,27 @@ export const FilterSidebar: React.FC<FilterSidebarProps> = ({ categories, attrib
                         <MapPin size={14} className="text-rose-500" /> Lokalizacja
                     </Label>
                     <Select
-                        value={city}
+                        value={city || "all"}
                         onValueChange={(val) => {
                             const newCity = val === "all" ? "" : val;
                             setCity(newCity);
-                            updateFilters({ city: newCity });
+                            changeCity(newCity || "all");
+                            startTransition(async () => {
+                                await setCityCookie(newCity || "all");
+                                // We remove the explicit `city` from URL to rely purely on the global cookie
+                                // and keep the URL clean.
+                                const params = new URLSearchParams(searchParams.toString());
+                                params.delete('city');
+                                router.push(`${basePath}?${params.toString()}`);
+                            });
                         }}
+                        disabled={isPending}
                     >
                         <SelectTrigger className="w-full bg-gray-50 border-none rounded-2xl h-11 focus:ring-rose-500">
                             <SelectValue placeholder="Wybierz miasto" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">Wszystkie miasta</SelectItem>
+                            <SelectItem value="all">Cała Polska</SelectItem>
                             {cities.map((c) => (
                                 <SelectItem key={c.id} value={c.slug || c.name}>{c.name}</SelectItem>
                             ))}

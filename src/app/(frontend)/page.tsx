@@ -2,7 +2,7 @@ export const revalidate = 3600; // 1 hour
 
 import { Suspense } from 'react';
 import { getPayloadClient } from '@/lib/payload-client';
-import { headers } from 'next/headers';
+import { headers, cookies } from 'next/headers';
 
 import { Hero } from '@/components/sections/home/Hero';
 import { CategoriesGrid } from '@/features/categories/components/CategoriesGrid';
@@ -21,21 +21,18 @@ import { CategoriesSkeleton } from '@/components/skeletons/CategoriesSkeleton';
 import { FeaturedPlacesSkeleton } from '@/components/skeletons/FeaturedPlacesSkeleton';
 import { UpcomingEventsSectionSkeleton } from '@/components/skeletons/UpcomingEventsSectionSkeleton';
 
-// Allow caching with revalidation, but headers() usage will make it dynamic on demand
-// export const dynamic = 'force-dynamic' // Removed to allow optimization
-
-async function CategoriesSection() {
+async function CategoriesSection({ city }: { city?: string }) {
   const categories = await getCategories('place', true);
   return <CategoriesGrid categories={categories} />;
 }
 
-async function FeaturedPlacesSection() {
-  const places = await getFeaturedPlaces();
+async function FeaturedPlacesSection({ city }: { city?: string }) {
+  const places = await getFeaturedPlaces({ city });
   return <FeaturedPlaces places={places} />;
 }
 
-async function UpcomingEventsSectionWrapper() {
-  const { docs: upcomingEvents } = await getEvents({ limit: 4 });
+async function UpcomingEventsSectionWrapper({ city }: { city?: string }) {
+  const { docs: upcomingEvents } = await getEvents({ limit: 4, city });
   return <UpcomingEventsSection events={upcomingEvents} />;
 }
 
@@ -48,21 +45,25 @@ async function BusinessSectionWrapper() {
   return <BusinessSection isLoggedIn={!!user} freePlanId={freePlan?.id} />;
 }
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  const citySlug = cookieStore.get('kp_city_slug')?.value || undefined;
+  const effectiveCity = citySlug === 'all' ? undefined : citySlug;
+
   return (
     <main>
       <Hero />
 
       <Suspense fallback={<CategoriesSkeleton />}>
-        <CategoriesSection />
+        <CategoriesSection city={effectiveCity} />
       </Suspense>
 
       <Suspense fallback={<FeaturedPlacesSkeleton />}>
-        <FeaturedPlacesSection />
+        <FeaturedPlacesSection city={effectiveCity} />
       </Suspense>
 
       <Suspense fallback={<UpcomingEventsSectionSkeleton />}>
-        <UpcomingEventsSectionWrapper />
+        <UpcomingEventsSectionWrapper city={effectiveCity} />
       </Suspense>
 
       <Suspense fallback={<div className="h-96 bg-gray-50 animate-pulse" />}>
