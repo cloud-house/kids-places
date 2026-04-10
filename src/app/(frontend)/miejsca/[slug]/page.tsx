@@ -134,14 +134,16 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
                 /* ── PREMIUM HERO ─────────────────────────────────────────── */
                 <div className="relative w-full" style={{ height: '75vh', minHeight: '520px' }}>
                     {/* Background image */}
-                    <Image
-                        src={firstGalleryImageUrl}
-                        alt={place.name}
-                        fill
-                        className="object-cover"
-                        priority
-                        sizes="100vw"
-                    />
+                    {firstGalleryImageUrl && (
+                        <Image
+                            src={firstGalleryImageUrl}
+                            alt={place.name}
+                            fill
+                            className="object-cover"
+                            priority
+                            sizes="100vw"
+                        />
+                    )}
                     {/* Gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/40" />
 
