@@ -2,7 +2,31 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { getPayloadClient } from '@/lib/payload-client';
 import { revalidatePath } from 'next/cache';
+import type { Payload } from 'payload';
 import { Organizer } from '@/payload-types';
+
+/** Syncs premium status from organizer to all their places. */
+async function syncPlacesPremium(payload: Payload, organizerId: number, premiumExpiresAt: string | null) {
+    const places = await payload.find({
+        collection: 'places',
+        where: { organizer: { equals: organizerId } },
+        limit: 100,
+        depth: 0,
+    });
+    for (const place of places.docs) {
+        await payload.update({
+            collection: 'places',
+            id: place.id,
+            data: {
+                plan: premiumExpiresAt ? 'premium' : 'free',
+                premiumExpiresAt: premiumExpiresAt ?? undefined,
+            },
+            overrideAccess: true,
+            context: { skipRevalidation: true },
+        });
+    }
+    payload.logger.info(`[stripe/webhook] Synced premium to ${places.docs.length} places for organizer ${organizerId}`);
+}
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     apiVersion: '2025-12-15.clover',
@@ -68,18 +92,21 @@ export async function POST(req: NextRequest) {
                             baseDate.setMonth(baseDate.getMonth() + 1);
                         }
 
+                        const expiresAt = baseDate.toISOString();
                         await payload.update({
                             collection: 'organizers',
                             id: organizerId,
                             data: {
                                 stripeCustomerId: session.customer as string,
-                                premiumExpiresAt: baseDate.toISOString(),
+                                premiumExpiresAt: expiresAt,
                                 plan: planId,
                                 collectionMethod: 'send_invoice',
                             },
                         });
+                        await syncPlacesPremium(payload, organizerId, expiresAt);
                     } else if (session.mode === 'subscription' && session.subscription) {
                         const subscription = await stripe.subscriptions.retrieve(session.subscription as string) as unknown as StripeSubscriptionExt;
+                        const expiresAt = new Date(subscription.current_period_end * 1000).toISOString();
                         await payload.update({
                             collection: 'organizers',
                             id: organizerId,
@@ -87,11 +114,12 @@ export async function POST(req: NextRequest) {
                                 stripeCustomerId: session.customer as string,
                                 stripeSubscriptionId: session.subscription as string,
                                 stripeSubscriptionStatus: subscription.status as Organizer['stripeSubscriptionStatus'],
-                                premiumExpiresAt: new Date(subscription.current_period_end * 1000).toISOString(),
+                                premiumExpiresAt: expiresAt,
                                 plan: planId,
                                 collectionMethod: 'charge_automatically',
                             },
                         });
+                        await syncPlacesPremium(payload, organizerId, expiresAt);
                     }
 
                     // Revalidate dashboard
@@ -144,6 +172,7 @@ export async function POST(req: NextRequest) {
                         id: organizers.docs[0].id,
                         data: updateData,
                     });
+                    await syncPlacesPremium(payload, organizers.docs[0].id, updateData.premiumExpiresAt ?? null);
 
                     // Revalidate dashboard
                     revalidatePath('/moje-konto', 'page');
@@ -168,9 +197,9 @@ export async function POST(req: NextRequest) {
                         data: {
                             stripeSubscriptionStatus: 'canceled',
                             stripeSubscriptionId: null,
-                            // We do NOT clear the plan here to allow access until premiumExpiresAt
                         },
                     });
+                    // Places keep their premiumExpiresAt until it naturally expires
                 }
                 break;
             }

@@ -37,6 +37,15 @@ export const placeSchema = z.object({
     })).optional(),
     isFree: z.boolean().optional(),
     _status: z.enum(['draft', 'published']).optional(),
+    storyBlocks: z.array(z.object({
+        blockType: z.enum(['storyText', 'storyImage', 'storyGallery']),
+        content: z.record(z.string(), z.unknown()).optional(),
+        image: z.union([z.string(), z.number()]).optional(),
+        caption: z.string().optional(),
+        size: z.enum(['full', 'centered']).optional(),
+        images: z.array(z.object({ image: z.union([z.string(), z.number()]) })).optional(),
+        id: z.string().optional(),
+    })).optional(),
 });
 
 export type PlaceSchema = z.infer<typeof placeSchema>;

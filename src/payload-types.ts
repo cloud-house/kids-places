@@ -237,6 +237,10 @@ export interface Place {
   name: string;
   slug: string;
   plan?: ('free' | 'premium') | null;
+  /**
+   * Premium aktywne do tej daty. Przy subskrypcji aktualizowane automatycznie po każdym odnowieniu.
+   */
+  premiumExpiresAt?: string | null;
   category: number | Category;
   /**
    * Opcjonalny organizator/marka zarządzająca tym miejscem.
@@ -264,6 +268,53 @@ export interface Place {
         image?: (number | null) | Media;
         id?: string | null;
       }[]
+    | null;
+  /**
+   * Układaj bloki treści — tekst, zdjęcia, galerie. Widoczne tylko dla kont Premium.
+   */
+  storyBlocks?:
+    | (
+        | {
+            content: {
+              root: {
+                type: string;
+                children: {
+                  type: any;
+                  version: number;
+                  [k: string]: unknown;
+                }[];
+                direction: ('ltr' | 'rtl') | null;
+                format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+                indent: number;
+                version: number;
+              };
+              [k: string]: unknown;
+            };
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'storyText';
+          }
+        | {
+            image: number | Media;
+            caption?: string | null;
+            size?: ('full' | 'centered') | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'storyImage';
+          }
+        | {
+            images?:
+              | {
+                  image: number | Media;
+                  id?: string | null;
+                }[]
+              | null;
+            caption?: string | null;
+            id?: string | null;
+            blockName?: string | null;
+            blockType: 'storyGallery';
+          }
+      )[]
     | null;
   street?: string | null;
   postalCode?: string | null;
@@ -913,6 +964,7 @@ export interface PlacesSelect<T extends boolean = true> {
   name?: T;
   slug?: T;
   plan?: T;
+  premiumExpiresAt?: T;
   category?: T;
   organizer?: T;
   shortDescription?: T;
@@ -923,6 +975,39 @@ export interface PlacesSelect<T extends boolean = true> {
     | {
         image?: T;
         id?: T;
+      };
+  storyBlocks?:
+    | T
+    | {
+        storyText?:
+          | T
+          | {
+              content?: T;
+              id?: T;
+              blockName?: T;
+            };
+        storyImage?:
+          | T
+          | {
+              image?: T;
+              caption?: T;
+              size?: T;
+              id?: T;
+              blockName?: T;
+            };
+        storyGallery?:
+          | T
+          | {
+              images?:
+                | T
+                | {
+                    image?: T;
+                    id?: T;
+                  };
+              caption?: T;
+              id?: T;
+              blockName?: T;
+            };
       };
   street?: T;
   postalCode?: T;

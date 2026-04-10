@@ -46,14 +46,14 @@ export async function GET(req: NextRequest) {
 
         payload.logger.info(`[ExpirePremium] Znaleziono ${expiredOrganizers.length} organizatorów z wygasłym Premium.`)
 
-        const results = await Promise.allSettled(
+        const orgResults = await Promise.allSettled(
             expiredOrganizers.map(async (org) => {
                 const currentPlanId = typeof org.plan === 'object' ? org.plan?.id : org.plan
 
                 // Skip if already on free plan (nothing to do)
                 if (currentPlanId === freePlanId || !currentPlanId) return
 
-                payload.logger.info(`[ExpirePremium] Downgrade: ${org.name} (ID: ${org.id})`)
+                payload.logger.info(`[ExpirePremium] Downgrade organizer: ${org.name} (ID: ${org.id})`)
 
                 await payload.update({
                     collection: 'organizers',
@@ -66,13 +66,48 @@ export async function GET(req: NextRequest) {
             })
         )
 
-        const downgraded = results.filter((r) => r.status === 'fulfilled').length
-        const failed = results.filter((r) => r.status === 'rejected').length
+        // Also expire places with a direct premiumExpiresAt (e.g. imported places, demo premium).
+        const { docs: expiredPlaces } = await payload.find({
+            collection: 'places',
+            where: {
+                and: [
+                    { plan: { equals: 'premium' } },
+                    { premiumExpiresAt: { less_than: now.toISOString() } },
+                ],
+            },
+            limit: 200,
+            depth: 1,
+        })
+
+        payload.logger.info(`[ExpirePremium] Znaleziono ${expiredPlaces.length} miejsc z wygasłym Premium.`)
+
+        const placeResults = await Promise.allSettled(
+            expiredPlaces.map(async (place) => {
+                // Skip if organizer has an active Stripe subscription — renewal webhook may be delayed
+                const org = typeof place.organizer === 'object' ? place.organizer : null
+                if (org && (org.stripeSubscriptionStatus === 'active' || org.stripeSubscriptionStatus === 'trialing')) {
+                    payload.logger.info(`[ExpirePremium] Skip place ${place.id} — organizer has active subscription`)
+                    return
+                }
+                payload.logger.info(`[ExpirePremium] Downgrade place: ${place.name} (ID: ${place.id})`)
+                await payload.update({
+                    collection: 'places',
+                    id: place.id,
+                    data: { plan: 'free' },
+                    overrideAccess: true,
+                    context: { skipRevalidation: true },
+                })
+            })
+        )
+
+        const downgraded = orgResults.filter((r) => r.status === 'fulfilled').length
+        const failed = orgResults.filter((r) => r.status === 'rejected').length
+        const placesDowngraded = placeResults.filter((r) => r.status === 'fulfilled').length
+        const placesFailed = placeResults.filter((r) => r.status === 'rejected').length
 
         return NextResponse.json({
-            checked: expiredOrganizers.length,
-            downgraded,
-            failed,
+            organizers: { checked: expiredOrganizers.length, downgraded, failed },
+            places: { checked: expiredPlaces.length, downgraded: placesDowngraded, failed: placesFailed },
         })
     } catch (error) {
         console.error('[ExpirePremium] Error:', error)

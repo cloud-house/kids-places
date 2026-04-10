@@ -35,7 +35,7 @@ export async function createPlaceAction(data: PlaceSchema) {
 
         const organizerId = organizers.docs.length > 0 ? organizers.docs[0].id : undefined;
 
-        const { website, facebook, instagram, tiktok, tickets, ...restData } = validatedData;
+        const { website, facebook, instagram, tiktok, tickets, storyBlocks: _storyBlocks, ...restData } = validatedData;
 
         const socialLinks: NonNullable<Place['socialLinks']> = [];
         if (website) socialLinks.push({ platform: 'Website', url: website });
@@ -141,7 +141,7 @@ export async function updatePlaceAction(id: number, data: PlaceSchema) {
 
         const organizerId = organizers.docs.length > 0 ? organizers.docs[0].id : undefined;
 
-        const { website, facebook, instagram, tiktok, tickets, ...restData } = validatedData;
+        const { website, facebook, instagram, tiktok, tickets, storyBlocks: storyBlocksRaw, ...restData } = validatedData;
 
         const socialLinks: NonNullable<Place['socialLinks']> = [];
         if (website) socialLinks.push({ platform: 'Website', url: website });
@@ -153,6 +153,35 @@ export async function updatePlaceAction(id: number, data: PlaceSchema) {
         const longDescription = typeof validatedData.longDescription === 'string'
             ? stringToLexical(validatedData.longDescription)
             : (validatedData.longDescription as Place['longDescription']);
+
+        type PlaceStoryBlock = NonNullable<Place['storyBlocks']>[number];
+        const storyBlocks = storyBlocksRaw?.map((block): PlaceStoryBlock => {
+            if (block.blockType === 'storyText') {
+                return {
+                    blockType: 'storyText',
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    content: block.content as any,
+                    id: block.id,
+                }
+            }
+            if (block.blockType === 'storyImage') {
+                return {
+                    blockType: 'storyImage',
+                    image: block.image != null ? (typeof block.image === 'string' ? parseInt(block.image) : block.image) : 0,
+                    caption: block.caption,
+                    size: block.size,
+                    id: block.id,
+                }
+            }
+            return {
+                blockType: 'storyGallery',
+                images: block.images?.map(img => ({
+                    image: typeof img.image === 'string' ? parseInt(img.image) : img.image,
+                })),
+                caption: block.caption,
+                id: block.id,
+            }
+        }) ?? undefined;
 
         const updateData: Partial<Place> = {
             ...restData,
@@ -171,6 +200,7 @@ export async function updatePlaceAction(id: number, data: PlaceSchema) {
             gallery: validatedData.gallery?.map(id => ({
                 image: typeof id === 'string' ? parseInt(id) : id
             })),
+            storyBlocks,
             _status: validatedData._status || 'published',
         }
 

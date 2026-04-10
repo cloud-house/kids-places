@@ -157,6 +157,16 @@ export const Places: CollectionConfig = {
                 readOnly: true,
             },
         },
+        {
+            name: 'premiumExpiresAt',
+            type: 'date',
+            admin: {
+                position: 'sidebar',
+                readOnly: true,
+                description: 'Premium aktywne do tej daty. Przy subskrypcji aktualizowane automatycznie po każdym odnowieniu.',
+                date: { displayFormat: 'dd.MM.yyyy HH:mm' },
+            },
+        },
 
         {
             name: 'category',
@@ -201,6 +211,79 @@ export const Places: CollectionConfig = {
                     name: 'image',
                     type: 'upload',
                     relationTo: 'media',
+                },
+            ],
+        },
+        {
+            name: 'storyBlocks',
+            type: 'blocks',
+            label: 'Historia miejsca (Premium)',
+            admin: {
+                description: 'Układaj bloki treści — tekst, zdjęcia, galerie. Widoczne tylko dla kont Premium.',
+            },
+            blocks: [
+                {
+                    slug: 'storyText',
+                    labels: { singular: 'Tekst', plural: 'Bloki tekstu' },
+                    fields: [
+                        {
+                            name: 'content',
+                            type: 'richText',
+                            required: true,
+                        },
+                    ],
+                },
+                {
+                    slug: 'storyImage',
+                    labels: { singular: 'Zdjęcie', plural: 'Zdjęcia' },
+                    fields: [
+                        {
+                            name: 'image',
+                            type: 'upload',
+                            relationTo: 'media',
+                            required: true,
+                        },
+                        {
+                            name: 'caption',
+                            type: 'text',
+                            label: 'Podpis',
+                        },
+                        {
+                            name: 'size',
+                            type: 'select',
+                            label: 'Rozmiar',
+                            defaultValue: 'full',
+                            options: [
+                                { label: 'Pełna szerokość', value: 'full' },
+                                { label: 'Wyśrodkowane (max 800px)', value: 'centered' },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    slug: 'storyGallery',
+                    labels: { singular: 'Galeria', plural: 'Galerie' },
+                    fields: [
+                        {
+                            name: 'images',
+                            type: 'array',
+                            label: 'Zdjęcia',
+                            minRows: 2,
+                            fields: [
+                                {
+                                    name: 'image',
+                                    type: 'upload',
+                                    relationTo: 'media',
+                                    required: true,
+                                },
+                            ],
+                        },
+                        {
+                            name: 'caption',
+                            type: 'text',
+                            label: 'Podpis galerii',
+                        },
+                    ],
                 },
             ],
         },

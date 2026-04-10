@@ -14,7 +14,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { PremiumBadge } from '@/components/ui/PremiumIndicators';
-import { Save, X, Sparkles, Plus, Trash2, MapPin, FileText, Phone, Clock, Ticket as TicketIcon } from 'lucide-react';
+import { Save, X, Sparkles, Plus, Trash2, MapPin, FileText, Phone, Clock, Ticket as TicketIcon, BookOpen, AlignLeft, Image as ImageIcon, LayoutGrid } from 'lucide-react';
 import { useForm, useFieldArray, Control, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -91,12 +91,39 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
                 return null;
             }).filter((t): t is NonNullable<typeof t> => t !== null),
             _status: (place?._status as 'draft' | 'published') || 'published',
+            storyBlocks: place?.storyBlocks?.map(block => {
+                if (block.blockType === 'storyText') {
+                    return { blockType: 'storyText' as const, content: block.content as Record<string, unknown>, id: block.id ?? undefined }
+                }
+                if (block.blockType === 'storyImage') {
+                    return {
+                        blockType: 'storyImage' as const,
+                        image: typeof block.image === 'object' ? (block.image as { id: number }).id : block.image,
+                        caption: block.caption ?? '',
+                        size: (block.size as 'full' | 'centered') ?? 'full',
+                        id: block.id ?? undefined,
+                    }
+                }
+                return {
+                    blockType: 'storyGallery' as const,
+                    images: (block.images ?? []).map(img => ({
+                        image: typeof img.image === 'object' ? (img.image as { id: number }).id : img.image,
+                    })),
+                    caption: block.caption ?? '',
+                    id: block.id ?? undefined,
+                }
+            }) || [],
         },
     });
 
     const { fields, append, remove } = useFieldArray({
         control: form.control as unknown as Control<PlaceSchema>,
         name: "tickets",
+    });
+
+    const { fields: storyFields, append: appendStory, remove: removeStory } = useFieldArray({
+        control: form.control as unknown as Control<PlaceSchema>,
+        name: "storyBlocks",
     });
 
     const selectedCategory = form.watch('category');
@@ -401,6 +428,185 @@ export const PlaceForm: React.FC<PlaceFormProps> = ({
                             />
                         </div>
                     </div>
+
+                    {/* Story Blocks Section (Premium only) */}
+                    {isPremium && (
+                        <div className="pt-8 border-t border-gray-50">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="w-8 h-8 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500">
+                                    <BookOpen size={16} aria-hidden="true" />
+                                </div>
+                                <h3 className="text-xl font-bold italic">Historia miejsca</h3>
+                                <PremiumBadge />
+                            </div>
+                            <p className="text-sm text-gray-500 mb-6">Opowiedz historię swojego miejsca za pomocą bloków tekstu, zdjęć i galerii.</p>
+
+                            <div className="space-y-4">
+                                {storyFields.map((field, index) => {
+                                    const blockType = form.watch(`storyBlocks.${index}.blockType`);
+                                    return (
+                                        <div key={field.id} className="p-6 bg-gray-50 rounded-[2rem] border border-gray-100 relative group animate-in zoom-in-95 duration-200">
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <span className="text-[10px] font-black uppercase text-gray-400 tracking-widest">
+                                                    {blockType === 'storyText' ? 'Blok tekstu' : blockType === 'storyImage' ? 'Zdjęcie' : 'Galeria'}
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeStory(index)}
+                                                    className="ml-auto w-7 h-7 bg-white border border-gray-100 text-gray-400 hover:text-rose-500 rounded-full flex items-center justify-center shadow-sm transition-all hover:scale-110"
+                                                    aria-label="Usuń blok"
+                                                >
+                                                    <Trash2 size={12} aria-hidden="true" />
+                                                </button>
+                                            </div>
+
+                                            {blockType === 'storyText' && (
+                                                <FormField
+                                                    control={form.control as unknown as Control<PlaceSchema>}
+                                                    name={`storyBlocks.${index}.content`}
+                                                    render={({ field: f }) => (
+                                                        <FormItem>
+                                                            <FormControl>
+                                                                <RichTextEditor
+                                                                    value={f.value as object}
+                                                                    onChange={f.onChange}
+                                                                    placeholder="Opisz swoje miejsce..."
+                                                                />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            )}
+
+                                            {blockType === 'storyImage' && (
+                                                <div className="space-y-4">
+                                                    <FormField
+                                                        control={form.control as unknown as Control<PlaceSchema>}
+                                                        name={`storyBlocks.${index}.image`}
+                                                        render={({ field: f }) => (
+                                                            <FormItem>
+                                                                <FormControl>
+                                                                    <ImageUpload
+                                                                        value={f.value as number}
+                                                                        onChange={f.onChange}
+                                                                        label="Zdjęcie"
+                                                                    />
+                                                                </FormControl>
+                                                                <FormMessage />
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <FormField
+                                                            control={form.control as unknown as Control<PlaceSchema>}
+                                                            name={`storyBlocks.${index}.caption`}
+                                                            render={({ field: f }) => (
+                                                                <FormItem>
+                                                                    <FormLabel className="text-[10px] font-black uppercase text-gray-400">Podpis (opcjonalny)</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input placeholder="np. Widok na salę główną" className="bg-white rounded-xl h-10" {...f} value={f.value as string ?? ''} />
+                                                                    </FormControl>
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <FormField
+                                                            control={form.control as unknown as Control<PlaceSchema>}
+                                                            name={`storyBlocks.${index}.size`}
+                                                            render={({ field: f }) => (
+                                                                <FormItem>
+                                                                    <FormLabel className="text-[10px] font-black uppercase text-gray-400">Rozmiar</FormLabel>
+                                                                    <Select onValueChange={f.onChange} value={f.value as string ?? 'full'}>
+                                                                        <FormControl>
+                                                                            <SelectTrigger className="bg-white rounded-xl h-10">
+                                                                                <SelectValue />
+                                                                            </SelectTrigger>
+                                                                        </FormControl>
+                                                                        <SelectContent className="rounded-xl">
+                                                                            <SelectItem value="full">Pełna szerokość</SelectItem>
+                                                                            <SelectItem value="centered">Wyśrodkowane</SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {blockType === 'storyGallery' && (
+                                                <div className="space-y-4">
+                                                    <FormField
+                                                        control={form.control as unknown as Control<PlaceSchema>}
+                                                        name={`storyBlocks.${index}.images`}
+                                                        render={({ field: f }) => {
+                                                            const images = (f.value as { image: string | number }[] | undefined) ?? [];
+                                                            const imageIds = images.map(img => img.image);
+                                                            return (
+                                                                <FormItem>
+                                                                    <FormLabel className="text-[10px] font-black uppercase text-gray-400">Zdjęcia (min. 2)</FormLabel>
+                                                                    <FormControl>
+                                                                        <GalleryUpload
+                                                                            value={imageIds}
+                                                                            onChange={(ids) => f.onChange(ids.map(id => ({ image: id })))}
+                                                                            maxImages={12}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            );
+                                                        }}
+                                                    />
+                                                    <FormField
+                                                        control={form.control as unknown as Control<PlaceSchema>}
+                                                        name={`storyBlocks.${index}.caption`}
+                                                        render={({ field: f }) => (
+                                                            <FormItem>
+                                                                <FormLabel className="text-[10px] font-black uppercase text-gray-400">Podpis galerii (opcjonalny)</FormLabel>
+                                                                <FormControl>
+                                                                    <Input placeholder="np. Nasze sale zabaw" className="bg-white rounded-xl h-10" {...f} value={f.value as string ?? ''} />
+                                                                </FormControl>
+                                                            </FormItem>
+                                                        )}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 mt-4">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="rounded-xl border-dashed border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 font-bold"
+                                    onClick={() => appendStory({ blockType: 'storyText', content: undefined, id: undefined })}
+                                >
+                                    <AlignLeft size={14} className="mr-1.5" aria-hidden="true" /> Tekst
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="rounded-xl border-dashed border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 font-bold"
+                                    onClick={() => appendStory({ blockType: 'storyImage', image: undefined, caption: '', size: 'full', id: undefined })}
+                                >
+                                    <ImageIcon size={14} className="mr-1.5" aria-hidden="true" /> Zdjęcie
+                                </Button>
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="rounded-xl border-dashed border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 font-bold"
+                                    onClick={() => appendStory({ blockType: 'storyGallery', images: [], caption: '', id: undefined })}
+                                >
+                                    <LayoutGrid size={14} className="mr-1.5" aria-hidden="true" /> Galeria
+                                </Button>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Premium Contact Section */}
                     <div className="pt-8 border-t border-gray-50">

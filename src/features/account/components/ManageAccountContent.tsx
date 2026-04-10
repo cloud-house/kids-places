@@ -365,7 +365,11 @@ export const ManageAccountContent: React.FC<ManageAccountContentProps> = ({
                                     place={editingItem as Place || undefined}
                                     categories={categories}
                                     attributes={attributes}
-                                    isPremium={isPremium}
+                                    isPremium={isPremium || (
+                                        (editingItem as Place)?.plan === 'premium' &&
+                                        (!(editingItem as Place)?.premiumExpiresAt ||
+                                            new Date((editingItem as Place).premiumExpiresAt!) > new Date())
+                                    )}
                                     onSubmit={handlePlaceSubmit}
                                     onCancel={() => { setIsAddingMode(false); setEditingItem(null); }}
                                     isLoading={isLoading || isPending}
