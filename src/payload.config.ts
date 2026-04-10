@@ -27,7 +27,6 @@ import { Pages } from './collections/Content/Pages'
 import { Posts } from './collections/Blog/Posts'
 import { PostCategories } from './collections/Taxonomy/PostCategories'
 import { NewsletterSubscriptions } from './collections/Interactions/NewsletterSubscriptions'
-import { Mailings } from './collections/Interactions/Mailings'
 import { Tickets } from './collections/Content/Tickets'
 import { BRAND_CONFIG } from './lib/config'
 
@@ -68,7 +67,6 @@ export default buildConfig({
         Posts,
         PostCategories,
         NewsletterSubscriptions,
-        Mailings,
         Tickets,
     ],
     editor: lexicalEditor({}),

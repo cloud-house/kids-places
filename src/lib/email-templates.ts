@@ -14,8 +14,10 @@ export const EMAIL_TEMPLATES = {
         getSubject: (subject?: string) => subject || 'Wiadomość z Kids Places',
         getHtml: (data: EmailTemplateData) => `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
-                <h2>Witaj!</h2>
-                ${data.customMessage || ''}
+                <h2>Witaj :)</h2>
+                ${data.customMessage
+                ? data.customMessage.split(/\n\n+/).map(p => `<p style="line-height: 1.6;">${p.replace(/\n/g, '<br/>')}</p>`).join('')
+                : ''}
                 <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;" />
                 <p style="font-size: 12px; color: #666;">
                     Ta wiadomość została wysłana z platformy <a href="${BRAND_CONFIG.url}">${BRAND_CONFIG.name}</a>.
