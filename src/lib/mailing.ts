@@ -1,78 +1,48 @@
-import { Payload, Where } from 'payload'
+import { Payload } from 'payload'
 import { EMAIL_TEMPLATES, TemplateKey } from './email-templates'
 import { buildUnsubscribeUrl } from './unsubscribe'
 import { BRAND_CONFIG } from './config'
 import { Place } from '../payload-types'
 
-export const sendMailing = async (payload: Payload, mailingId: string | number) => {
-    payload.logger.info(`[Mailing] Starting for ID: ${mailingId}`)
+export type SendMailingOptions = {
+    placeIds: number[]
+    templateKey: TemplateKey
+    subject?: string
+    customMessage?: string
+}
 
-    const mailing = await payload.findByID({
-        collection: 'mailings',
-        id: mailingId,
-        depth: 2,
-    })
+export const sendMailing = async (payload: Payload, options: SendMailingOptions) => {
+    const { placeIds, templateKey, subject, customMessage } = options
 
-    if (!mailing) {
-        payload.logger.error(`[Mailing] Not found for ID: ${mailingId}`)
-        return
-    }
+    payload.logger.info(`[Mailing] Starting — template: ${templateKey}, recipients: ${placeIds.length}`)
 
-    if (mailing.status !== 'sent') {
-        payload.logger.info(`[Mailing] Skipping — status is '${mailing.status}', not 'sent'`)
-        return
-    }
-
-    if (mailing.sentAt) {
-        payload.logger.info(`[Mailing] Skipping — already sent at ${mailing.sentAt}`)
-        return
-    }
-
-    const templateKey = (mailing.template as TemplateKey) || 'custom'
     const template = EMAIL_TEMPLATES[templateKey]
-
     if (!template) {
         payload.logger.error(`[Mailing] Template '${templateKey}' not found!`)
         return
     }
 
-    // Base query — for partnership_offer exclude already claimed places
-    const baseWhere: Where = {
-        email: { exists: true },
-        emailOptOut: { not_equals: true },
-        ...(templateKey === 'partnership_offer' ? { owner: { exists: false } } : {}),
-    }
-
-    let recipients: Place[] = []
-
+    let places: Place[] = []
     try {
-        if (mailing.recipientsType === 'individual') {
-            payload.logger.info(`[Mailing] Loading individual recipients`)
-            const fullMailing = await payload.findByID({ collection: 'mailings', id: mailingId, depth: 2 })
-            recipients = (fullMailing.recipients?.filter(r => typeof r === 'object') ?? []) as Place[]
-        } else if (mailing.recipientsType === 'city' && mailing.city) {
-            const cityId = typeof mailing.city === 'object' ? mailing.city.id : mailing.city
-            payload.logger.info(`[Mailing] Searching for recipients in city ${cityId}`)
-            const places = await payload.find({ collection: 'places', where: { ...baseWhere, city: { equals: cityId } }, limit: 1000 })
-            recipients = places.docs
-        } else if (mailing.recipientsType === 'category' && mailing.category) {
-            const categoryId = typeof mailing.category === 'object' ? mailing.category.id : mailing.category
-            payload.logger.info(`[Mailing] Searching for recipients in category ${categoryId}`)
-            const places = await payload.find({ collection: 'places', where: { ...baseWhere, category: { equals: categoryId } }, limit: 1000 })
-            recipients = places.docs
-        }
+        const result = await payload.find({
+            collection: 'places',
+            where: { id: { in: placeIds } },
+            limit: placeIds.length,
+            depth: 0,
+        })
+        places = result.docs
     } catch (err) {
-        payload.logger.error(`[Mailing] Error identifying recipients: ${err}`)
+        payload.logger.error(`[Mailing] Error loading places: ${err}`)
         return
     }
 
-    payload.logger.info(`[Mailing] Found ${recipients.length} candidates.`)
+    payload.logger.info(`[Mailing] Loaded ${places.length} places.`)
 
     let successCount = 0
     let failCount = 0
     const skipped = { has_owner: 0, already_contacted: 0, no_email: 0, opted_out: 0 }
 
-    for (const place of recipients) {
+    for (const place of places) {
         try {
             if (!place || typeof place !== 'object') continue
 
@@ -96,10 +66,6 @@ export const sendMailing = async (payload: Payload, mailingId: string | number) 
                 continue
             }
 
-            const customMessage = typeof mailing.content === 'string'
-                ? mailing.content
-                : (mailing.content ? '[Rich editor content was sent]' : undefined)
-
             const htmlContent = template.getHtml({
                 placeName: place.name || 'Partnerze',
                 customMessage,
@@ -110,7 +76,7 @@ export const sendMailing = async (payload: Payload, mailingId: string | number) 
             payload.logger.info(`[Mailing] Sending to ${place.email}...`)
             await payload.sendEmail({
                 to: place.email,
-                subject: template.getSubject(mailing.subject ?? undefined),
+                subject: template.getSubject(subject),
                 html: htmlContent,
             })
             successCount++
@@ -131,18 +97,6 @@ export const sendMailing = async (payload: Payload, mailingId: string | number) 
             payload.logger.error(`[Mailing] Send error for place ${place.id}: ${err}`)
             failCount++
         }
-    }
-
-    // Set sentAt after all emails are sent
-    try {
-        await payload.update({
-            collection: 'mailings',
-            id: mailingId,
-            data: { sentAt: new Date().toISOString() },
-            overrideAccess: true,
-        })
-    } catch (err) {
-        payload.logger.error(`[Mailing] Failed to update sentAt: ${err}`)
     }
 
     payload.logger.info(

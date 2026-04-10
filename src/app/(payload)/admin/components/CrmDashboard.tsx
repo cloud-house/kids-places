@@ -1,10 +1,10 @@
 'use client'
 
 import React, { useEffect, useState, useCallback } from 'react'
-import Link from 'next/link'
 import { toast } from '@payloadcms/ui'
 
 type CrmStatus = 'new' | 'contacted' | 'interested' | 'rejected' | 'active'
+type TemplateKey = 'partnership_offer' | 'update_request' | 'custom'
 
 type PlaceRow = {
     id: number
@@ -34,9 +34,144 @@ const CRM_STATUS_COLORS: Record<CrmStatus, string> = {
     active: '#8b5cf6',
 }
 
+const TEMPLATE_LABELS: Record<TemplateKey, string> = {
+    partnership_offer: 'Propozycja współpracy (dla nowych)',
+    update_request: 'Prośba o aktualizację (dla obecnych)',
+    custom: 'Własna treść',
+}
+
 function formatDate(dateStr?: string | null): string {
     if (!dateStr) return '—'
     return new Date(dateStr).toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+type MailingModalProps = {
+    recipientCount: number
+    onClose: () => void
+    onSend: (opts: { templateKey: TemplateKey; subject?: string; customMessage?: string }) => void
+    sending: boolean
+}
+
+const MailingModal: React.FC<MailingModalProps> = ({ recipientCount, onClose, onSend, sending }) => {
+    const [templateKey, setTemplateKey] = useState<TemplateKey>('partnership_offer')
+    const [subject, setSubject] = useState('')
+    const [customMessage, setCustomMessage] = useState('')
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (templateKey === 'custom' && !subject.trim()) {
+            toast.error('Podaj temat wiadomości')
+            return
+        }
+        onSend({ templateKey, subject: subject || undefined, customMessage: customMessage || undefined })
+    }
+
+    return (
+        <div style={{
+            position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+        }}>
+            <div style={{
+                backgroundColor: 'var(--theme-bg)',
+                border: '1px solid var(--theme-elevation-150)',
+                borderRadius: '8px',
+                padding: '32px',
+                width: '480px',
+                maxWidth: '90vw',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+            }}>
+                <h2 style={{ margin: '0 0 8px', fontSize: '20px', fontWeight: 700 }}>Wyślij mailing</h2>
+                <p style={{ margin: '0 0 24px', fontSize: '14px', opacity: 0.6 }}>
+                    Wyślij do <strong>{recipientCount}</strong> wyfiltrowanych miejsc
+                    {' '}(miejsca bez emaila lub z opt-out zostaną pominięte)
+                </p>
+
+                <form onSubmit={handleSubmit}>
+                    <div style={{ marginBottom: '20px' }}>
+                        <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600 }}>
+                            Szablon
+                        </label>
+                        <select
+                            value={templateKey}
+                            onChange={e => setTemplateKey(e.target.value as TemplateKey)}
+                            style={{
+                                width: '100%', padding: '8px 12px',
+                                border: '1px solid var(--theme-elevation-150)',
+                                borderRadius: '4px', backgroundColor: 'var(--theme-bg)',
+                                color: 'var(--theme-text)', fontSize: '14px',
+                            }}
+                        >
+                            {(Object.entries(TEMPLATE_LABELS) as [TemplateKey, string][]).map(([v, l]) => (
+                                <option key={v} value={v}>{l}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {templateKey === 'custom' && (
+                        <>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600 }}>
+                                    Temat *
+                                </label>
+                                <input
+                                    type="text"
+                                    value={subject}
+                                    onChange={e => setSubject(e.target.value)}
+                                    placeholder="Temat wiadomości email"
+                                    style={{
+                                        width: '100%', padding: '8px 12px',
+                                        border: '1px solid var(--theme-elevation-150)',
+                                        borderRadius: '4px', backgroundColor: 'var(--theme-bg)',
+                                        color: 'var(--theme-text)', fontSize: '14px',
+                                        boxSizing: 'border-box',
+                                    }}
+                                />
+                            </div>
+                            <div style={{ marginBottom: '20px' }}>
+                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600 }}>
+                                    Treść
+                                </label>
+                                <textarea
+                                    value={customMessage}
+                                    onChange={e => setCustomMessage(e.target.value)}
+                                    placeholder="Treść wiadomości. Puste linie tworzą nowe akapity."
+                                    rows={6}
+                                    style={{
+                                        width: '100%', padding: '8px 12px',
+                                        border: '1px solid var(--theme-elevation-150)',
+                                        borderRadius: '4px', backgroundColor: 'var(--theme-bg)',
+                                        color: 'var(--theme-text)', fontSize: '14px',
+                                        resize: 'vertical', boxSizing: 'border-box',
+                                    }}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                        <button
+                            type="button"
+                            className="btn btn--style-secondary"
+                            onClick={onClose}
+                            disabled={sending}
+                            style={{ padding: '8px 20px' }}
+                        >
+                            Anuluj
+                        </button>
+                        <button
+                            type="submit"
+                            className="btn btn--style-primary"
+                            disabled={sending || recipientCount === 0}
+                            style={{ padding: '8px 20px' }}
+                        >
+                            {sending ? 'Wysyłanie...' : `Wyślij do ${recipientCount} miejsc`}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    )
 }
 
 export const CrmDashboard: React.FC = () => {
@@ -47,6 +182,8 @@ export const CrmDashboard: React.FC = () => {
     const [cityFilter, setCityFilter] = useState<string>('')
     const [search, setSearch] = useState('')
     const [updatingId, setUpdatingId] = useState<number | null>(null)
+    const [showMailingModal, setShowMailingModal] = useState(false)
+    const [sending, setSending] = useState(false)
 
     const fetchPlaces = useCallback(async () => {
         setLoading(true)
@@ -104,6 +241,25 @@ export const CrmDashboard: React.FC = () => {
         }
     }
 
+    const handleSendMailing = async (opts: { templateKey: TemplateKey; subject?: string; customMessage?: string }) => {
+        setSending(true)
+        const placeIds = filtered.map(p => p.id)
+        try {
+            const res = await fetch('/api/mailing/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ placeIds, ...opts }),
+            })
+            if (!res.ok) throw new Error('Błąd wysyłki')
+            toast.success(`Mailing uruchomiony dla ${placeIds.length} miejsc — sprawdź logi Vercel`)
+            setShowMailingModal(false)
+        } catch {
+            toast.error('Nie udało się uruchomić mailingu')
+        } finally {
+            setSending(false)
+        }
+    }
+
     const filtered = places.filter(p => {
         if (search) {
             const q = search.toLowerCase()
@@ -125,13 +281,14 @@ export const CrmDashboard: React.FC = () => {
         <div style={{ padding: '32px', fontFamily: 'var(--font-body)', color: 'var(--theme-text)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <h1 style={{ fontSize: '24px', fontWeight: 700, margin: 0 }}>CRM — Miejsca</h1>
-                <Link
-                    href="/admin/collections/mailings/create"
+                <button
+                    type="button"
                     className="btn btn--style-primary"
+                    onClick={() => setShowMailingModal(true)}
                     style={{ padding: '8px 16px' }}
                 >
-                    + Nowy Mailing
-                </Link>
+                    Wyślij mailing
+                </button>
             </div>
 
             {/* Stats */}
@@ -297,6 +454,15 @@ export const CrmDashboard: React.FC = () => {
                         {filtered.length} / {places.length} miejsc
                     </div>
                 </div>
+            )}
+
+            {showMailingModal && (
+                <MailingModal
+                    recipientCount={filtered.length}
+                    onClose={() => setShowMailingModal(false)}
+                    onSend={handleSendMailing}
+                    sending={sending}
+                />
             )}
         </div>
     )
