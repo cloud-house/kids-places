@@ -244,7 +244,23 @@ export const Navbar: React.FC<NavbarProps> = ({ user, cities = [] }) => {
                     <div className="h-px bg-gray-100 w-full my-4" />
 
                     <div className="space-y-4">
-                        <Link href="/ulubione" onClick={() => setIsOpen(false)} className="flex items-center gap-4 text-xl font-bold text-gray-700 hover:text-rose-500 p-4 bg-gray-50 rounded-2xl">
+                        <button
+                            onClick={() => {
+                                setIsOpen(false);
+                                openModal();
+                            }}
+                            className="flex items-center w-full text-left gap-4 text-xl font-bold text-gray-700 hover:text-rose-500 p-4 bg-gray-50 rounded-2xl transition-colors"
+                        >
+                            <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-rose-500">
+                                {selectedCityObj ? <MapPin size={20} /> : <Globe size={20} />}
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-sm font-normal text-gray-500 leading-none mb-1">Lokalizacja</span>
+                                <span>{selectedCityObj ? selectedCityObj.name : 'Cała Polska'}</span>
+                            </div>
+                        </button>
+
+                        <Link href="/ulubione" onClick={() => setIsOpen(false)} className="flex items-center gap-4 text-xl font-bold text-gray-700 hover:text-rose-500 p-4 bg-gray-50 rounded-2xl transition-colors">
                             <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-rose-500">
                                 <Heart size={20} />
                             </div>
