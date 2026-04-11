@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useTransition } from 'react';
-import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Search, MapPin, Tag, X, ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
 import { Category, Attribute, AttributeGroup, City } from '@/payload-types';
 import { Input } from '@/components/ui/input';
@@ -50,7 +50,6 @@ interface FilterSidebarProps {
 export const FilterSidebar: React.FC<FilterSidebarProps> = ({ categories, attributes, basePath, scope, cities }) => {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const pathname = usePathname();
     const { selectedCity, changeCity } = useCity();
     const [isPending, startTransition] = useTransition();
 

@@ -74,10 +74,8 @@ const StoryGalleryRenderer: React.FC<{ block: StoryGalleryBlock }> = ({ block })
         .map(item => getImageUrl(item.image))
         .filter((url): url is string => !!url)
 
-    if (validImages.length === 0) return null
-
-    const prev = () => setLightboxIndex(i => (i !== null ? (i - 1 + validImages.length) % validImages.length : 0))
-    const next = () => setLightboxIndex(i => (i !== null ? (i + 1) % validImages.length : 0))
+    const prev = React.useCallback(() => setLightboxIndex(i => (i !== null ? (i - 1 + validImages.length) % validImages.length : 0)), [validImages.length])
+    const next = React.useCallback(() => setLightboxIndex(i => (i !== null ? (i + 1) % validImages.length : 0)), [validImages.length])
 
     React.useEffect(() => {
         if (lightboxIndex === null) return
@@ -88,7 +86,9 @@ const StoryGalleryRenderer: React.FC<{ block: StoryGalleryBlock }> = ({ block })
         }
         window.addEventListener('keydown', handler)
         return () => window.removeEventListener('keydown', handler)
-    }, [lightboxIndex])
+    }, [lightboxIndex, prev, next])
+
+    if (validImages.length === 0) return null
 
     const cols = validImages.length === 2 ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-3'
 

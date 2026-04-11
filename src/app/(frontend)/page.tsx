@@ -21,7 +21,7 @@ import { CategoriesSkeleton } from '@/components/skeletons/CategoriesSkeleton';
 import { FeaturedPlacesSkeleton } from '@/components/skeletons/FeaturedPlacesSkeleton';
 import { UpcomingEventsSectionSkeleton } from '@/components/skeletons/UpcomingEventsSectionSkeleton';
 
-async function CategoriesSection({ city }: { city?: string }) {
+async function CategoriesSection() {
   const categories = await getCategories('place', true);
   return <CategoriesGrid categories={categories} />;
 }
@@ -55,7 +55,7 @@ export default async function Home() {
       <Hero />
 
       <Suspense fallback={<CategoriesSkeleton />}>
-        <CategoriesSection city={effectiveCity} />
+        <CategoriesSection />
       </Suspense>
 
       <Suspense fallback={<FeaturedPlacesSkeleton />}>

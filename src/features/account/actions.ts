@@ -35,6 +35,7 @@ export async function createPlaceAction(data: PlaceSchema) {
 
         const organizerId = organizers.docs.length > 0 ? organizers.docs[0].id : undefined;
 
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { website, facebook, instagram, tiktok, tickets, storyBlocks: _storyBlocks, ...restData } = validatedData;
 
         const socialLinks: NonNullable<Place['socialLinks']> = [];
