@@ -100,8 +100,9 @@ export const sendMailing = async (payload: Payload, options: SendMailingOptions)
             } catch (crmErr) {
                 payload.logger.warn(`[Mailing] Failed to update CRM for place ${place.id}: ${crmErr}`)
             }
-        } catch (err: any) {
-            payload.logger.error(`[Mailing] Send error for place ${place.id} (${place.email}): ${err?.message || err}`)
+        } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : String(err)
+            payload.logger.error(`[Mailing] Send error for place ${place.id} (${place.email}): ${errorMessage}`)
             failCount++
         }
     }
