@@ -317,9 +317,9 @@ export default async function PlacePage({ params }: { params: Promise<{ slug: st
                     )}
 
                     {/* Location Map */}
-                    <div className="bg-white rounded-3xl p-0 overflow-hidden shadow-sm h-80 relative border border-gray-100">
+                    <div className="bg-white rounded-3xl p-0 overflow-hidden shadow-sm h-80 relative border border-gray-100 z-10">
                         <Map key={`${lat}-${lon}`} lat={lat} lon={lon} name={place.name} />
-                        <div className="absolute bottom-4 left-4 z-[1000] flex items-center gap-2">
+                        <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2">
                             <a
                                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${place.name} ${fullAddress}`)}`}
                                 target="_blank"
