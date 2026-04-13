@@ -44,7 +44,10 @@ export const sendMailing = async (payload: Payload, options: SendMailingOptions)
 
     for (const place of places) {
         try {
-            if (!place || typeof place !== 'object') continue
+            if (!place || typeof place !== 'object') {
+                payload.logger.warn(`[Mailing] Skipping invalid place: ${JSON.stringify(place)}`)
+                continue
+            }
 
             if (templateKey === 'partnership_offer' && place.owner) {
                 skipped.has_owner++
@@ -66,6 +69,8 @@ export const sendMailing = async (payload: Payload, options: SendMailingOptions)
                 continue
             }
 
+            payload.logger.info(`[Mailing] Preparing HTML for ${place.email} (ID: ${place.id})...`)
+            
             const htmlContent = template.getHtml({
                 placeName: place.name || 'Partnerze',
                 customMessage,
@@ -73,15 +78,17 @@ export const sendMailing = async (payload: Payload, options: SendMailingOptions)
                 placeUrl: place.slug ? `${BRAND_CONFIG.url}/miejsca/${place.slug}` : undefined,
             })
 
-            payload.logger.info(`[Mailing] Sending to ${place.email}...`)
+            const finalSubject = template.getSubject(subject)
+            payload.logger.info(`[Mailing] Sending to ${place.email} with subject: ${finalSubject}`)
+
             await payload.sendEmail({
                 to: place.email,
-                subject: template.getSubject(subject),
+                subject: finalSubject,
                 html: htmlContent,
             })
             successCount++
 
-            // Update CRM status — best-effort, skip revalidation to avoid slowdown
+            // Update CRM status — best-effort
             try {
                 await payload.update({
                     collection: 'places',
@@ -93,8 +100,8 @@ export const sendMailing = async (payload: Payload, options: SendMailingOptions)
             } catch (crmErr) {
                 payload.logger.warn(`[Mailing] Failed to update CRM for place ${place.id}: ${crmErr}`)
             }
-        } catch (err) {
-            payload.logger.error(`[Mailing] Send error for place ${place.id}: ${err}`)
+        } catch (err: any) {
+            payload.logger.error(`[Mailing] Send error for place ${place.id} (${place.email}): ${err?.message || err}`)
             failCount++
         }
     }

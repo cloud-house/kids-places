@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { headers } from 'next/headers'
 import { getPayloadClient } from '@/lib/payload-client'
 import { sendMailing, SendMailingOptions } from '@/lib/mailing'
 import { TemplateKey } from '@/lib/email-templates'
@@ -6,8 +7,16 @@ import { TemplateKey } from '@/lib/email-templates'
 export const maxDuration = 300
 
 export async function POST(req: NextRequest) {
+    const payload = await getPayloadClient()
     const authHeader = req.headers.get('authorization')
-    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    
+    // Check for Cron/Automation authorization
+    const isCron = process.env.CRON_SECRET && authHeader === `Bearer ${process.env.CRON_SECRET}`
+    
+    // Check for Admin/Payload authorization
+    const { user } = await payload.auth({ headers: await headers() })
+    
+    if (!isCron && !user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -28,7 +37,6 @@ export async function POST(req: NextRequest) {
         customMessage,
     }
 
-    const payload = await getPayloadClient()
     try {
         payload.logger.info(`[Mailing Send] Starting — ${placeIds.length} places, template: ${templateKey}`)
         await sendMailing(payload, options)
